@@ -1,0 +1,154 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Conway's Game of Life implemented in Javascript</title>
+<script type="text/javascript">
+/*TODO
+	- stop/start unico tasto
+	- permettere di usare il mouse per 'disegnare'
+*/
+var columns = 80;
+var rows = 40;
+var size = 6;
+var t;
+var start = false;
+var generation = 0;
+
+var table = new Array(rows);
+for (var i=0; i < rows; i++)
+	table[i] = new Array(columns);
+	
+var tableT = new Array(rows);
+for (var i=0; i < rows; i++)
+	tableT[i] = new Array(columns);
+
+var tableDiv = new Array(rows);
+for (var i=0; i < rows; i++)
+	tableDiv[i] = new Array(columns);
+
+function refreshTable() {
+for (var y = 0; y < rows; y++) {
+		for (var x = 0; x < columns; x++) 
+			table[y][x] = tableT[y][x];
+			
+			}
+}
+	
+function randomTable() {
+	for (var y = 1; y < rows-1; y++) {
+		for (var x = 1; x < columns-1; x++) {
+			table[y][x] = (Math.floor(Math.random()*3)>1)?true:false;
+			tableT[y][x] = table[y][x];
+			tableDiv[y][x].style.background = table[y][x]?"black":"white";
+		}
+	}
+}
+
+var neighbours = 0;
+function ConwayLife() {
+	for (var y = 1; y < rows-1; y++) {
+		for (var x = 1; x < columns-1; x++) {
+			neighbours = 0;
+			for (var i=0; i < 3; i++)
+				for (var j=0; j < 3; j++)
+					if (table[y-1+i][x-1+j])
+						neighbours++;
+			
+			if (table[y][x]){
+				neighbours--;
+				if (neighbours < 2)
+					tableT[y][x] = false;
+				if (neighbours > 3)
+					tableT[y][x] = false;
+			}
+			
+			if (!table[y][x]) {
+				if (neighbours == 3)
+					tableT[y][x] = true;
+			}
+		}
+		
+	}
+	generation++;
+}
+
+function createTable() {
+	for (var y = 0; y < rows; y++) {
+		for (var x = 0; x < columns; x++) {
+			tableDiv[y][x] = document.createElement('div');
+			tableDiv[y][x].style.position = "absolute";
+			tableDiv[y][x].style.height = size+"px";
+			tableDiv[y][x].style.width = size+"px";
+			tableDiv[y][x].style.top = y*size+"px";
+			tableDiv[y][x].style.left = x*size+"px";
+			tableDiv[y][x].style.border = '1px solid gray';
+			tableDiv[y][x].style.background = "white";
+			tableDiv[y][x].onclick = function () {
+										var y = parseInt(this.style.top)/size;
+										var x = parseInt(this.style.left)/size;
+										table[y][x] = !table[y][x];
+										tableT[y][x] = !tableT[y][x];
+										this.style.background = table[y][x]?"black":"white";
+									};                      
+			document.getElementById("tableBox").appendChild(tableDiv[y][x]);
+		}
+	}
+	//document.getElementById("tableBox").style.border="1px solid black";
+	document.getElementById("tableBox").style.position="relative";
+	document.getElementById("tableBox").style.top="25px";
+	//document.getElementById("tableBox").onclick = function() {alert("aaa");};   
+}
+
+function drawTable() {
+	for (var y = 0; y < rows; y++)
+		for (var x = 0; x < columns; x++)
+			drawPixel(x,y, tableT[y][x]?"black":"white");
+	document.getElementById("generation").innerHTML = generation;
+}
+
+function drawPixel(x,y,color) {
+tableDiv[y][x].style.background = color;
+}
+
+function clearTable() {
+
+	for (var y = 0; y < rows; y++) {
+		for (var x = 0; x < columns; x++) {
+			table[y][x] = false;
+			tableT[y][x] = false;
+			tableDiv[y][x].style.background = "white";
+		}
+	}
+	generation = 0;
+	document.getElementById("generation").innerHTML = generation;
+}
+
+function startStop() {
+	if(start) {
+		clearInterval(t);
+		document.getElementById("startstop").childNodes[0].nodeValue = "vai";
+		document.getElementById("next").disabled=false;
+		start = false;
+	} else {
+		t = setInterval ( 'ConwayLife();drawTable();refreshTable();', 80 );
+		document.getElementById("startstop").childNodes[0].nodeValue = "stop";
+		start = true;
+		document.getElementById("next").disabled=true;
+	}
+}
+</script>
+</head>
+
+<body onload="createTable();">
+<button onclick="randomTable();drawTable();"> riempi a caso </button>
+<button id="next" onclick="ConwayLife();drawTable();refreshTable();"> prossima generazione </button>
+<button onclick="clearTable();"> pulisci </button>
+<button id="startstop" onclick="startStop();"> vai </button>
+<div id="response">generazione: <span id="generation"></span></div>
+<div id="tableBox">
+
+</div>
+</body>
+
+</html>
